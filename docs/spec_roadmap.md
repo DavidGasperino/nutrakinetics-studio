@@ -1,59 +1,52 @@
 # Build Roadmap
 
-## Phase 0: Foundation (current)
+## Phase 0: Foundation (completed)
 
 - Repository scaffold
 - Streamlit shell
-- Model interface contracts
+- Base model interface contracts
 - Parameter schema template
-- Documentation handoff
+- Initial documentation stack
+
+## Phase 1: Stack-aware simulation shell (completed)
+
+- Supplement registry and validation rules
+- Multi-supplement selection UI
+- Dynamic supplement traces in outputs
+- Basic warning/blocking behavior
+
+## Phase 2: Dynamic supplement effects (completed)
+
+- Explicit class-based effect equations
+- Interaction-rule effects wired into ODE multipliers
+- Interaction coefficient override support
+- Tests for override sensitivity
+
+## Phase 3: Compare + calibration hooks (completed)
+
+- Persistent scenario compare store (save/load/delete)
+- Overlay visualization across saved and current scenarios
+- Interaction parameter inspection table
+- CLI fitting hook (`scripts/fit_interactions.py`)
+
+## Phase 4: Scientific hardening (next)
+
+- Replace proxy supplement PK with data-backed modules per compound
+- Add observed dataset ingestion + preprocessing templates
+- Add calibration report artifacts (fit quality, parameter uncertainty)
+- Expand objective set beyond `NAD_cyt` MSE (multi-objective)
 
 Exit criteria:
 
-- App runs locally
-- Specs reviewed and approved
+- At least one real observed dataset reproducibly fitted
+- Fit artifacts stored with provenance and timestamp
 
-## Phase 1: Mechanistic core
+## Phase 5: Deployment and scale (next)
 
-- Implement PILL + GI + PBPK baseline ODE system
-- Add oral NA/NAM simulation path
-- Add exposure metric extraction
-- Add unit tests for conservation and sign constraints
-
-Exit criteria:
-
-- Reproduces qualitative niacin PK characteristics
-- Stable runtime under default scenarios
-
-## Phase 2: NAD-QSP integration
-
-- Add tissue intracellular states and fluxes
-- CD38/PARP/SIRT toggles
-- Mito pool transport option via SLC25A51
-- NAAD optional marker path
-
-Exit criteria:
-
-- Produces plausible NAD pool dynamics
-- Passes sensitivity sanity tests
-
-## Phase 3: IV + ECTO and calibration
-
-- Add IV infusion route and ecto-hydrolysis
-- Dataset loaders and calibration objective plumbing
-- Parameter fitting workflow (SciPy optimize / Bayesian optional)
-
-Exit criteria:
-
-- Fit pipeline works on at least one published human dataset
-- Result artifacts saved with provenance metadata
-
-## Phase 4: Hardening and deployment
-
-- Streamlit app UX polish
-- Batch scenario runner
-- CI checks and packaging
-- Streamlit Cloud or container deployment
+- CI pipeline for tests + lint + docs checks
+- Scenario batch runner and export packager
+- Streamlit Cloud / containerized deployment profile
+- Versioned release process with changelog
 
 Exit criteria:
 

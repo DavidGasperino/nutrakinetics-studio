@@ -16,6 +16,7 @@ class SimulationScenario:
     cd38_scale: float
     selected_supplements: tuple[str, ...] = ()
     supplement_doses_mg: dict[str, float] = field(default_factory=dict)
+    interaction_coefficient_overrides: dict[str, float] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)

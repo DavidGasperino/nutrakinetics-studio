@@ -6,23 +6,31 @@ from scipy.integrate import solve_ivp
 
 from models.interfaces import SimulationResult, SimulationScenario
 from models.supplements import (
-    aggregate_modifiers,
+    apply_interaction_overrides,
+    compute_dynamic_modifier_series,
+    generate_supplement_traces,
+    load_class_scalars,
     selected_definitions,
-    supplement_concentration_trace,
+    selected_interaction_rules,
     validate_supplement_stack,
 )
 
 
 def _ode_system(
-    _t: float,
+    t_h: float,
     y: np.ndarray,
     route: str,
     cd38_scale: float,
-    synthesis_multiplier: float,
-    cd38_multiplier: float,
-    absorption_multiplier: float,
+    t_eval: np.ndarray,
+    synthesis_multiplier_series: np.ndarray,
+    cd38_multiplier_series: np.ndarray,
+    absorption_multiplier_series: np.ndarray,
 ) -> np.ndarray:
     plasma_precursor, nad_cyt, nad_mito = y
+
+    synthesis_multiplier = float(np.interp(t_h, t_eval, synthesis_multiplier_series))
+    cd38_multiplier = float(np.interp(t_h, t_eval, cd38_multiplier_series))
+    absorption_multiplier = float(np.interp(t_h, t_eval, absorption_multiplier_series))
 
     oral_input = (0.8 if route == "oral" else 0.0) * absorption_multiplier
     iv_input = 1.0 if route == "iv" else 0.0
@@ -55,9 +63,21 @@ def run_simulation(scenario: SimulationScenario) -> SimulationResult:
         raise ValueError("; ".join(validation.blocking_errors))
 
     definitions = selected_definitions(scenario.selected_supplements)
-    synthesis_multiplier, cd38_multiplier, absorption_multiplier = aggregate_modifiers(definitions)
+
+    interaction_rules = selected_interaction_rules(scenario.selected_supplements)
+    interaction_rules = apply_interaction_overrides(interaction_rules, scenario.interaction_coefficient_overrides)
 
     t_eval = np.linspace(0.0, scenario.duration_h, 250)
+
+    traces = generate_supplement_traces(t_eval, definitions, scenario.supplement_doses_mg)
+    class_scalars = load_class_scalars()
+    modifier_df = compute_dynamic_modifier_series(
+        times_h=t_eval,
+        traces=traces,
+        definitions=definitions,
+        interaction_rules=interaction_rules,
+        class_scalars=class_scalars,
+    )
 
     y0 = np.array(
         [
@@ -73,9 +93,10 @@ def run_simulation(scenario: SimulationScenario) -> SimulationResult:
             y,
             scenario.route,
             scenario.cd38_scale,
-            synthesis_multiplier,
-            cd38_multiplier,
-            absorption_multiplier,
+            t_eval,
+            modifier_df["synthesis_multiplier"].to_numpy(),
+            modifier_df["cd38_multiplier"].to_numpy(),
+            modifier_df["absorption_multiplier"].to_numpy(),
         ),
         t_span=(0.0, scenario.duration_h),
         y0=y0,
@@ -89,22 +110,42 @@ def run_simulation(scenario: SimulationScenario) -> SimulationResult:
             "plasma_precursor_uM": solution.y[0],
             "nad_cyt_uM": solution.y[1],
             "nad_mito_uM": solution.y[2],
+            "synthesis_multiplier": modifier_df["synthesis_multiplier"].to_numpy(),
+            "cd38_multiplier": modifier_df["cd38_multiplier"].to_numpy(),
+            "absorption_multiplier": modifier_df["absorption_multiplier"].to_numpy(),
+            "synthesis_effect": modifier_df["synthesis_effect"].to_numpy(),
+            "cd38_effect": modifier_df["cd38_effect"].to_numpy(),
+            "absorption_effect": modifier_df["absorption_effect"].to_numpy(),
         }
     )
 
     supplement_signal_uM = np.zeros_like(solution.t, dtype=float)
     for definition in definitions:
-        dose_mg = scenario.supplement_doses_mg.get(definition.supplement_id, definition.default_dose_mg)
-        trace = supplement_concentration_trace(solution.t, dose_mg=dose_mg, definition=definition)
+        trace = traces.get(definition.supplement_id)
+        if trace is None:
+            continue
+
         column_name = f"supp_{definition.supplement_id}_plasma_uM"
         df[column_name] = trace
         supplement_signal_uM += trace
 
+        signal_col = f"supp_{definition.supplement_id}_sat_signal"
+        if signal_col in modifier_df.columns:
+            df[signal_col] = modifier_df[signal_col].to_numpy()
+
     if definitions:
         df["supplement_stack_signal_uM"] = supplement_signal_uM
+
+    for column in modifier_df.columns:
+        if column.startswith("interaction_") and column.endswith("_effect"):
+            df[column] = modifier_df[column].to_numpy()
+
+    warnings = list(validation.warnings)
+    if scenario.interaction_coefficient_overrides:
+        warnings.append("Interaction coefficients were overridden for this run.")
 
     return SimulationResult(
         times_h=df["time_h"].tolist(),
         dataframe=df,
-        warnings=validation.warnings,
+        warnings=tuple(dict.fromkeys(warnings)),
     )

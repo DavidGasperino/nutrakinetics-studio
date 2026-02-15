@@ -5,15 +5,22 @@ supplements:
     enabled: true
     default_dose_mg: 500.0
     route_support: [oral]
-    stack_group: adjunct_antioxidant
+    mechanism:
+      class: adjunct_antioxidant
     pk:
       ka_per_h: 1.2
       kel_per_h: 0.35
       exposure_scale: 0.055
-    nad_effects:
-      synthesis_multiplier: 1.03
-      cd38_multiplier: 0.95
-      absorption_multiplier: 1.00
+    dynamics:
+      ec50_uM: 4.0
+      hill_n: 1.2
+      synthesis_gain_per_signal: 0.06
+      cd38_effect_per_signal: -0.08
+      absorption_gain_per_signal: 0.00
+    calibration:
+      fit_enabled: true
+      prior_mean: 0.06
+      prior_sd: 0.04
     backend:
       interaction_model_ready: false
       notes: "Directional placeholder effect only; pairwise interaction model pending."
@@ -24,18 +31,25 @@ supplements:
     enabled: true
     default_dose_mg: 1000.0
     route_support: [oral]
-    stack_group: methyl_support
+    mechanism:
+      class: methyl_support
     pk:
       ka_per_h: 1.0
       kel_per_h: 0.45
       exposure_scale: 0.040
-    nad_effects:
-      synthesis_multiplier: 1.02
-      cd38_multiplier: 1.00
-      absorption_multiplier: 1.00
+    dynamics:
+      ec50_uM: 6.0
+      hill_n: 1.1
+      synthesis_gain_per_signal: 0.04
+      cd38_effect_per_signal: 0.00
+      absorption_gain_per_signal: 0.00
+    calibration:
+      fit_enabled: true
+      prior_mean: 0.04
+      prior_sd: 0.03
     backend:
       interaction_model_ready: false
-      notes: "Downstream methyl-balance effects not yet explicitly represented."
+      notes: "Downstream methyl-balance effects are not yet explicitly represented."
 
   - id: pterostilbene
     label: Pterostilbene
@@ -43,15 +57,22 @@ supplements:
     enabled: true
     default_dose_mg: 100.0
     route_support: [oral]
-    stack_group: adjunct_antioxidant
+    mechanism:
+      class: adjunct_antioxidant
     pk:
       ka_per_h: 0.9
       kel_per_h: 0.28
       exposure_scale: 0.030
-    nad_effects:
-      synthesis_multiplier: 1.01
-      cd38_multiplier: 0.98
-      absorption_multiplier: 1.00
+    dynamics:
+      ec50_uM: 3.5
+      hill_n: 1.2
+      synthesis_gain_per_signal: 0.03
+      cd38_effect_per_signal: -0.05
+      absorption_gain_per_signal: 0.00
+    calibration:
+      fit_enabled: true
+      prior_mean: 0.03
+      prior_sd: 0.03
     backend:
       interaction_model_ready: false
       notes: "No validated concentration-driven interaction module yet."
@@ -62,15 +83,22 @@ supplements:
     enabled: true
     default_dose_mg: 500.0
     route_support: [oral]
-    stack_group: ampk_modulator
+    mechanism:
+      class: ampk_modulator
     pk:
       ka_per_h: 0.7
       kel_per_h: 0.22
       exposure_scale: 0.025
-    nad_effects:
-      synthesis_multiplier: 1.00
-      cd38_multiplier: 0.99
-      absorption_multiplier: 0.95
+    dynamics:
+      ec50_uM: 5.0
+      hill_n: 1.1
+      synthesis_gain_per_signal: 0.02
+      cd38_effect_per_signal: -0.02
+      absorption_gain_per_signal: -0.08
+    calibration:
+      fit_enabled: true
+      prior_mean: 0.02
+      prior_sd: 0.03
     backend:
       interaction_model_ready: false
       notes: "Potential GI/transporter interactions are not mechanistically resolved."
@@ -81,15 +109,22 @@ supplements:
     enabled: true
     default_dose_mg: 300.0
     route_support: [oral]
-    stack_group: nad_precursor
+    mechanism:
+      class: nad_precursor
     pk:
       ka_per_h: 1.1
       kel_per_h: 0.42
       exposure_scale: 0.080
-    nad_effects:
-      synthesis_multiplier: 1.08
-      cd38_multiplier: 1.00
-      absorption_multiplier: 1.02
+    dynamics:
+      ec50_uM: 3.0
+      hill_n: 1.3
+      synthesis_gain_per_signal: 0.12
+      cd38_effect_per_signal: 0.00
+      absorption_gain_per_signal: 0.03
+    calibration:
+      fit_enabled: true
+      prior_mean: 0.12
+      prior_sd: 0.05
     backend:
       interaction_model_ready: true
       notes: "Placeholder kinetics; full microbiome-pathway model planned."
@@ -100,23 +135,55 @@ supplements:
     enabled: true
     default_dose_mg: 250.0
     route_support: [oral]
-    stack_group: nad_precursor
+    mechanism:
+      class: nad_precursor
     pk:
       ka_per_h: 0.95
       kel_per_h: 0.40
       exposure_scale: 0.075
-    nad_effects:
-      synthesis_multiplier: 1.06
-      cd38_multiplier: 1.00
-      absorption_multiplier: 1.01
+    dynamics:
+      ec50_uM: 3.2
+      hill_n: 1.2
+      synthesis_gain_per_signal: 0.10
+      cd38_effect_per_signal: 0.00
+      absorption_gain_per_signal: 0.02
+    calibration:
+      fit_enabled: true
+      prior_mean: 0.10
+      prior_sd: 0.05
     backend:
       interaction_model_ready: true
       notes: "Transport-pathway ambiguity handled with configurable weighting later."
 
 interaction_rules:
-  - supplements: [nr, nmn]
+  - id: nr_nmn_precursor_synergy
+    supplements: [nr, nmn]
+    target: synthesis
+    effect_direction: increase
+    coefficient: 0.07
+    bounds: [0.0, 0.40]
+    fit:
+      enabled: true
+      prior_mean: 0.07
+      prior_sd: 0.05
+    source:
+      source_type: estimated_from_fit
+      source_id: "interaction_prior:nr_nmn_synergy"
     severity: warning
     message: "Stacking multiple direct NAD precursors is enabled but pairwise interaction calibration is pending."
-  - supplements: [berberine, quercetin]
+
+  - id: berberine_quercetin_gi_coupling
+    supplements: [berberine, quercetin]
+    target: absorption
+    effect_direction: decrease
+    coefficient: 0.05
+    bounds: [0.0, 0.30]
+    fit:
+      enabled: true
+      prior_mean: 0.05
+      prior_sd: 0.04
+    source:
+      source_type: estimated_from_fit
+      source_id: "interaction_prior:berberine_quercetin_absorption"
     severity: warning
-    message: "Combined GI interaction effects are not yet modeled; interpret simulated stack response cautiously."
+    message: "Combined GI interaction effects are not yet fully modeled; interpret simulated stack response cautiously."

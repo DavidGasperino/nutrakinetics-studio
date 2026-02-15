@@ -23,3 +23,5 @@ dist/
 # Data artifacts
 data/processed/*.parquet
 data/processed/*.csv
+data/processed/*.json
+data/processed/*fit_result*.yaml

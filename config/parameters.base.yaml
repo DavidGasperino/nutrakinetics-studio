@@ -1,6 +1,6 @@
 metadata:
   model_name: nutrakinetics_studio
-  version: 0.1.0
+  version: 0.2.0
   created_at_utc: "2026-02-15T00:00:00Z"
 
 parameters:
@@ -46,3 +46,44 @@ parameters:
       source_type: estimated_from_fit
       source_id: "hypothesis_prior"
       notes: "Scenario control for age/inflammation profile."
+
+  supplement_dynamics:
+    class_scalars:
+      nad_precursor:
+        value: 1.00
+        units: fold
+        source_type: estimated_from_fit
+        source_id: "supplement_class_prior:nad_precursor"
+        notes: "Global class scalar for NAD precursor dynamic effects."
+      adjunct_antioxidant:
+        value: 1.00
+        units: fold
+        source_type: estimated_from_fit
+        source_id: "supplement_class_prior:adjunct_antioxidant"
+        notes: "Global class scalar for adjunct antioxidant dynamic effects."
+      methyl_support:
+        value: 1.00
+        units: fold
+        source_type: estimated_from_fit
+        source_id: "supplement_class_prior:methyl_support"
+        notes: "Global class scalar for methyl support effects."
+      ampk_modulator:
+        value: 1.00
+        units: fold
+        source_type: estimated_from_fit
+        source_id: "supplement_class_prior:ampk_modulator"
+        notes: "Global class scalar for AMPK-linked effects."
+
+    fitting_hooks:
+      enabled:
+        value: true
+        units: boolean
+        source_type: estimated_from_fit
+        source_id: "calibration_pipeline_flag"
+        notes: "If true, interaction fit scripts may update interaction coefficients."
+      objective:
+        value: "mse_nad_cyt"
+        units: text
+        source_type: estimated_from_fit
+        source_id: "calibration_pipeline_default"
+        notes: "Default fitting objective used by scripts/fit_interactions.py."

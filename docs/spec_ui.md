@@ -2,87 +2,95 @@
 
 ## 1. UI objective
 
-Present a high-trust scientific simulator where users can configure mechanistic scenarios, run simulations quickly, and inspect uncertainty and calibration status.
+Provide a high-trust simulation workbench that supports:
 
-The UI must support **multi-supplement stack selection** while clearly communicating when interaction modeling is partial or pending.
+- mechanistic scenario setup
+- multi-supplement stack tuning
+- persistent scenario comparison
+- calibration visibility for interaction coefficients
 
 ## 2. Visual direction
 
 Design language: "clinical lab notebook + systems console".
 
-- Typography: `Source Sans Pro` for body, `Space Grotesk` for headings (via Streamlit CSS override)
-- Color system:
-  - Background gradient: slate -> steel blue (`#f3f6fb` to `#d9e3f2`)
-  - Primary accent: deep teal (`#0f5c74`)
-  - Secondary accent: amber (`#c98a2a`)
-  - Critical/state warnings: rust (`#ad3f2f`)
-- Card style: high contrast white cards, subtle border and shadow
-- Charts: route-aware color mapping (oral vs IV) and tissue-specific line styles
+- Typography: `Source Sans Pro` + `Space Grotesk`
+- Background: slate-to-steel gradient
+- Accent palette:
+  - primary: `#0f5c74`
+  - secondary: `#c98a2a`
+  - warning/critical: `#ad3f2f`
+- Card styling: white, bordered, soft shadow
 
-## 3. App information architecture
+## 3. Sidebar interaction model
 
-### Sidebar: Scenario Builder
+Primary controls:
 
-Controls:
+- route, compound, formulation
+- dose and horizon
+- CD38 scale
 
-- Route: oral / iv
-- Compound profile: NA, NAM, mixed, custom
-- Formulation: IR, ER, enteric, custom Weibull
-- Dose and regimen timing
-- Physiology profile: adult baseline, higher CD38 aging profile
-- Simulation horizon and step density
-- Supplement stack block:
-  - enable/disable stack modeling
-  - multiselect supplements from registry
-  - per-supplement dose controls
-  - inline interaction warnings
-  - blocking errors for unsupported route/combination
+Supplement stack controls:
 
-### Main tabs
+- enable stack toggle
+- supplement multiselect
+- per-supplement dose sliders
+- interaction-coefficient sliders for fit-enabled rules
+- inline warnings and blocking errors
+
+Compare controls:
+
+- optional run label
+- save current run
+- reload saved run inventory
+
+## 4. Main tab structure
 
 1. `Overview`
-- Scenario summary cards
-- Key KPI tiles (`AUC`, `Cmax`, `Tmax`, `NAD delta`, stack size)
+- KPI tiles (`Cmax`, `Tmax`, `NAD_cyt`, `NAD_mito`, saved run count)
 
 2. `PK Curves`
-- Primary precursor trace toggle
-- Supplement trace multiselect for side-by-side overlays
-- Optional route comparison overlay
+- primary precursor trace toggle
+- supplement plasma trace overlays
 
 3. `NAD Pools`
-- Tissue intracellular NAD trajectories (`cyt`, `mito`)
-- Optional supplement stack signal overlay
+- NAD pool trajectories
+- optional dynamic multiplier overlays
 
 4. `Supplement Effects`
-- Selected supplement table
-- Category/dose/interaction-model-ready visibility
-- Backend notes for interpretation context
+- selected supplement metadata table
+- interaction-effect trajectory plot when active
 
-5. `Parameters`
-- Table with source provenance fields
-- Registry source visibility (`config/supplements.yaml`)
+5. `Scenario Compare`
+- persistent saved-run multiselect
+- include-current toggle
+- metric selector
+- overlay chart across saved/current runs
+- delete selected / clear all actions
 
-6. `Calibration`
-- Dataset selector
-- Objective metric visualization
-- Interaction-fit diagnostics placeholder
+6. `Parameters`
+- provenance contract fields
+- pointers to config sources
 
-## 4. Interaction requirements
+7. `Calibration`
+- active interaction parameter table
+- effective vs default coefficient visibility
+- CLI fitting hook usage snippet
 
-- Every run tagged with scenario id and timestamp
-- User can export current run (`csv` + `yaml` config)
-- Inline warnings for unsupported mechanism combinations
-- Blocking rules prevent simulation runs when route/support constraints are violated
-- Tooltips for mechanistic terms and assumptions
+## 5. UX guardrails
 
-## 5. Responsive behavior
+- blocking validation prevents unsupported simulations
+- warnings explicitly state model confidence limits
+- interaction overrides are always visible in calibration table
+- saved-run overlays are metric-selectable to avoid unreadable multi-axis plots
 
-- Desktop-first two-column grid for controls + charts
-- Mobile fallback to stacked controls and single-chart viewport
-- Preserve usability for 1280px width and above as primary target
+## 6. Responsive behavior
 
-## 6. Accessibility
+- desktop-first layout for scientific workflows
+- stacked fallback for smaller screens
+- controls remain accessible without hidden nested interactions
 
-- Color contrast >= WCAG AA for text and critical charts
-- Keyboard-friendly tab navigation
-- Avoid color-only encoding (line style/marker also used)
+## 7. Accessibility
+
+- color contrast >= WCAG AA for text and warnings
+- keyboard-friendly controls
+- non-color cues in labels and legends

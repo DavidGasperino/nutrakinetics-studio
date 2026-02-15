@@ -4,56 +4,56 @@
 NutraKinetics Studio
 
 ## Product purpose
-Provide a transparent, auditable, mechanistic simulation environment for supplement PK/PBPK modeling with explicit support for:
+Provide a transparent, auditable mechanistic simulation environment for supplement PK/PBPK workflows with support for:
 
 - Oral vitamin B3 forms (NA, NAM)
 - Optional NAD booster extensions (NR, NMN)
 - IV NAD+ infusion route
 - Tissue-level intracellular NAD pool dynamics
-- User-selectable multi-supplement stacks with interaction validation states
+- Multi-supplement stack modeling with interaction-aware validation
+- Persistent scenario compare and calibration-ready interaction tuning
 
 ## Primary users
 
 - Translational scientists and pharmacometricians
 - Formulation scientists
-- Clinically oriented R&D teams modeling protocol alternatives
+- Clinically oriented R&D modeling teams
 
 ## Core user jobs
 
-1. Define a regimen (route, dose, schedule, formulation profile).
-2. Build a supplement stack with per-supplement doses.
-3. Run mechanistic simulation and inspect plasma/tissue trajectories.
-4. Compare scenarios side-by-side.
-5. Calibrate uncertain parameters to observed human datasets.
-6. Export result bundles with assumptions and source traceability.
+1. Configure route/formulation/dosing scenario.
+2. Build supplement stacks with per-supplement doses.
+3. Tune fit-enabled interaction coefficients for what-if analysis.
+4. Run mechanistic simulation and inspect PK/NAD trajectories.
+5. Save runs and compare overlays across scenarios.
+6. Fit interaction coefficients to observed data using calibration hooks.
 
 ## In-scope outputs
 
-- Plasma and tissue concentration-time outputs for NA/NAM and NAD metabolome states
-- Per-supplement plasma proxy traces for stack visualization
-- Intracellular `NAD_cyt` and `NAD_mito` trajectories by tissue
-- Derived exposure metrics (`AUC`, `Cmax`, `Tmax`, delta-from-baseline)
-- Regime indicators for PARP/SIRT/CD38 consumption dynamics
-- Stack interaction warnings/errors based on backend model coverage
+- Plasma and tissue concentration-time trajectories
+- Supplement-specific plasma proxy traces
+- Dynamic effect and multiplier trajectories
+- Intracellular `NAD_cyt` and `NAD_mito` trajectories
+- Interaction warnings/errors and parameter tables
+- Saved-run compare overlays
 
-## Out of scope (initial release)
+## Out of scope (current)
 
-- Clinical efficacy or treatment recommendations
-- Patient-specific diagnosis or dosing advice
-- Full regulatory reporting automation
+- Clinical efficacy claims or treatment recommendations
+- Patient-specific medical advice
+- Regulatory submission package generation
 
 ## Non-functional requirements
 
-- Deterministic run mode with seedable stochastic options
-- Parameter-level provenance for every constant and fitted value
-- Model configuration versioning and reproducibility
-- Interactive run target: <3 seconds for baseline scenario on laptop hardware
+- Parameter-level provenance
+- Reproducible scenario state and saved runs
+- Clear distinction between calibrated vs prior-driven interaction parameters
+- Baseline interactive response under typical laptop constraints
 
-## Acceptance criteria (v0)
+## Acceptance criteria (current)
 
-1. Streamlit app launches and runs baseline simulation.
-2. Supplement stack can be selected and dose-adjusted from sidebar.
-3. Unsupported supplement/route combinations are blocked before run.
-4. Module boundaries are codified and independently testable.
-5. Parameter template includes traceable metadata fields.
-6. Documentation is sufficient for a separate implementation team to continue.
+1. Streamlit app runs with stack-aware dynamics and validation.
+2. Runs can be saved, reloaded, and compared in overlays.
+3. Interaction coefficient overrides are visible and applied.
+4. Calibration hooks run from CLI with expected input contract.
+5. Unit tests pass for simulation, compare store, and calibration hooks.

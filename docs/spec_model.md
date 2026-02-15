@@ -2,13 +2,13 @@
 
 ## 1. Modeling objective
 
-Given a dosing regimen and formulation, simulate oral supplement to systemic exposure and intracellular NAD pool dynamics, plus IV NAD+ as a parallel route.
+Given a dosing regimen and formulation, simulate oral supplement exposure and intracellular NAD pool dynamics, plus IV NAD+ as a parallel route.
 
-The simulator must also support user-selectable **supplement stacks** with explicit interaction-validation status.
+The simulator also supports multi-supplement stacks with explicit interaction-rule logic and calibration-ready coefficient overrides.
 
 ## 2. Architecture
 
-Module graph:
+Core module graph:
 
 `PILL -> GI -> ENT -> LIVER -> PBPK <-> NAD_QSP -> OUT`
 
@@ -18,23 +18,23 @@ Parallel route:
 
 Supplement extension path:
 
-`SUPPLEMENT_REGISTRY -> INTERACTION_VALIDATOR -> STACK_EFFECTS -> PBPK/NAD_QSP`
+`SUPPLEMENT_REGISTRY -> INTERACTION_VALIDATOR -> DYNAMIC_EFFECT_ENGINE -> PBPK/NAD_QSP`
 
-Each module owns:
+Scenario compare path:
 
-- State vector entries
-- Parameter namespace and units
-- Rate laws
-- Input/output ports
+`SIMULATION_RESULT -> SCENARIO_COMPARE_STORE -> OVERLAY_VISUALIZATION`
 
 ## 3. Core state groups
 
 - Drug product states: intact form, PSD solids, dissolved pools
 - GI segment states: dissolved and particulate amounts per segment
-- PBPK states: tissue amounts for central and peripheral compartments
+- PBPK states: tissue amounts for central/peripheral compartments
 - QSP states per tissue: `NAM`, `NMN`, `NAD_cyt`, `NAD_mito`, optional `NAAD`
 - ECTO states for IV: plasma `NAD`, `NAM`, optional `ADPR`
-- Supplement stack states: per-supplement plasma proxy traces and aggregate stack signal
+- Supplement stack states:
+  - per-supplement plasma proxy concentration traces
+  - per-supplement saturating mechanism signals
+  - interaction-effect trajectories
 
 ## 4. Units and conventions
 
@@ -56,78 +56,78 @@ Each module owns:
 
 P-PSD-style driving force:
 
-- Dissolution depends on particle surface area
-- Uses unbound concentration gradient `(C*unbound - C_unbound)`
-- Supports segment pH and solubilization conditions
+- dissolution proportional to particle surface area and unbound gradient
+- supports pH/solubilization context by segment
 
 ### 5.3 GI transport/absorption
 
-- Segmental transit using CAT/ACAT-like first-order transfer
-- Default absorption: permeability-limited flux
-- Optional NA transporters: SMCT1/SMCT2 MM component
-- Optional NMN dual-path uptake with mixture weight `alpha_nmn`
+- CAT/ACAT-style segment transit
+- permeability baseline with optional transporter extensions
 
 ### 5.4 Liver first-pass and PBPK
 
-- Perfusion-limited tissue distribution baseline
-- Portal vein inflow to liver for oral route
-- Tissue extraction and hepatic metabolism hooks
+- perfusion-limited baseline
+- portal inflow and hepatic extraction hooks
 
 ### 5.5 IV + ECTO
 
-- Infusion rate `R_inf(t)` into plasma NAD state
-- Ecto-hydrolysis to NAM via CD38-like MM term
+- infusion source term into plasma NAD state
+- ecto-hydrolysis path to NAM
 
 ### 5.6 Intracellular NAD-QSP
 
-Per tissue:
+- synthesis: NAMPT, NMNAT, optional Preiss-Handler
+- sinks: CD38/PARP/SIRT-like
+- cytosol-mitochondria coupling (SLC25A51-capable)
 
-- Synthesis: NAMPT, NMNAT, optional Preiss-Handler branch
-- Consumption: CD38, PARP-like, SIRT-like terms with stress toggles
-- Cytosol-mitochondria exchange via transport (SLC25A51-capable)
+### 5.7 Supplement dynamic effect engine (implemented)
 
-### 5.7 Supplement stack effects (v1)
+For each selected supplement:
 
-- Supplement definitions are loaded from `config/supplements.yaml`.
-- User-selected supplements are validated for route support and known pairwise caution rules.
-- Valid selections produce bounded multiplicative modifiers:
-  - synthesis multiplier
-  - CD38 multiplier
-  - absorption multiplier
-- Per-supplement plasma proxy traces are generated for plotting and scenario comparison.
+1. Generate concentration proxy trace from supplement-specific PK parameters.
+2. Convert concentration to saturating mechanism signal using `ec50` + Hill coefficient.
+3. Apply mechanism-class scalar and supplement gains to dynamic effect terms:
+   - `synthesis_effect`
+   - `cd38_effect`
+   - `absorption_effect`
+4. Apply pairwise interaction rules (calibratable coefficients) to target effect term.
+5. Convert effect terms to bounded multipliers used directly by the ODE at each time point.
 
 ## 6. Parameter traceability contract
 
-Every parameter record must include:
+Every parameter record includes:
 
 - `value`
 - `units`
-- `source_type` (`peer_reviewed`, `database`, `estimated_from_fit`)
-- `source_id` (DOI/PMID/dataset)
+- `source_type`
+- `source_id`
 - `notes`
 
-This applies to supplement-registry parameters as well.
+Applies to base PBPK/QSP parameters, supplement definitions, class scalars, and interaction coefficients.
 
-## 7. Calibration strategy
+## 7. Calibration hooks
 
-1. Fit release/dissolution to in vitro profiles.
-2. Fit plasma PK for NA/NAM to known oral behavior.
-3. Fit NAD metabolome time courses for intracellular module constraints.
-4. Fit IV ecto-clearance behavior using infusion studies.
-5. Fit/validate stack modifiers and pairwise interactions for selected supplement combinations.
+Implemented hooks:
+
+- Interaction parameter inspection table: `models/calibration.py`
+- Interaction coefficient fitting routine: `fit_interaction_coefficients`
+- CLI entrypoint: `scripts/fit_interactions.py`
+
+Fitting target currently defaults to observed `NAD_cyt` trajectory (`time_h`, `observed_nad_cyt_uM`).
 
 ## 8. Validation checks
 
 - Mass conservation
 - Non-negativity
 - Parameter bounds and unit consistency
-- Scenario sanity checks (IR peak timing, age/CD38 effect directionality)
-- Supplement stack checks (route support, unknown ids, pairwise rule detection)
+- Scenario sanity checks (IR peak timing, age/CD38 directionality)
+- Supplement stack checks (route support, unknown ids, pairwise rule handling)
+- Scenario compare persistence checks (save/load/delete)
 
 ## 9. Code interfaces
 
 - Scenario/result contracts: `models/interfaces.py`
-- Core simulation orchestration: `models/simulation.py`
-- Supplement registry + interaction validation: `models/supplements.py`
-
-Implementation classes remain swappable without changing app orchestration.
+- Core simulation: `models/simulation.py`
+- Supplement registry + dynamic effects: `models/supplements.py`
+- Persistent compare storage: `models/scenario_compare.py`
+- Calibration utilities: `models/calibration.py`
