@@ -16,7 +16,7 @@ This repository is scaffolded for implementation. The full mechanistic model is 
 ## Quick start
 
 ```bash
-cd /Users/davidgasperino/workspace/SupplementO/nutrakinetics-studio
+cd /Users/davidgasperino/workspace/nutrakinetics-studio
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt

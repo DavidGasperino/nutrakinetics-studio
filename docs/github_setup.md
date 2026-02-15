@@ -31,15 +31,6 @@ Create an empty repository named `nutrakinetics-studio` under account `DavidGasp
 ## 3) Push
 
 ```bash
-cd /Users/davidgasperino/workspace/SupplementO/nutrakinetics-studio
+cd /Users/davidgasperino/workspace/nutrakinetics-studio
 git push -u origin main
-```
-
-## Optional: move project to `/Users/davidgasperino/workspace`
-
-If you want it outside `SupplementO`, move and keep git history:
-
-```bash
-mv /Users/davidgasperino/workspace/SupplementO/nutrakinetics-studio \
-   /Users/davidgasperino/workspace/nutrakinetics-studio
 ```
