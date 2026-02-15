@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.venv/
+venv/
+
+# Build / packaging
+build/
+dist/
+*.egg-info/
+
+# Tooling
+.pytest_cache/
+.mypy_cache/
+.coverage
+
+# OS/editor
+.DS_Store
+.vscode/
+.idea/
+
+# Data artifacts
+data/processed/*.parquet
+data/processed/*.csv

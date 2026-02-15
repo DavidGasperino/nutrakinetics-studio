@@ -1,0 +1,48 @@
+metadata:
+  model_name: nutrakinetics_studio
+  version: 0.1.0
+  created_at_utc: "2026-02-15T00:00:00Z"
+
+parameters:
+  pill:
+    na:
+      weibull_tau_h:
+        value: 1.2
+        units: h
+        source_type: estimated_from_fit
+        source_id: "in_vitro_curve:na_ir_placeholder"
+        notes: "Replace after product-specific dissolution fit."
+      weibull_beta:
+        value: 1.0
+        units: dimensionless
+        source_type: estimated_from_fit
+        source_id: "in_vitro_curve:na_ir_placeholder"
+        notes: "Shape parameter for release profile."
+
+  gi:
+    transit_k_stomach:
+      value: 1.5
+      units: 1/h
+      source_type: database
+      source_id: "CAT_ACAT_framework"
+      notes: "Baseline fasted setting."
+    peff_na:
+      value: 0.8
+      units: cm/h
+      source_type: estimated_from_fit
+      source_id: "placeholder"
+      notes: "Effective permeability placeholder."
+
+  nad_qsp:
+    nampt_km_nam:
+      value: 0.05
+      units: uM
+      source_type: peer_reviewed
+      source_id: "PubMed:18396861"
+      notes: "Use as prior; allow tissue calibration."
+    cd38_scale_aging:
+      value: 1.4
+      units: fold
+      source_type: estimated_from_fit
+      source_id: "hypothesis_prior"
+      notes: "Scenario control for age/inflammation profile."
