@@ -4,6 +4,8 @@
 
 Present a high-trust scientific simulator where users can configure mechanistic scenarios, run simulations quickly, and inspect uncertainty and calibration status.
 
+The UI must support **multi-supplement stack selection** while clearly communicating when interaction modeling is partial or pending.
+
 ## 2. Visual direction
 
 Design language: "clinical lab notebook + systems console".
@@ -29,36 +31,48 @@ Controls:
 - Dose and regimen timing
 - Physiology profile: adult baseline, higher CD38 aging profile
 - Simulation horizon and step density
+- Supplement stack block:
+  - enable/disable stack modeling
+  - multiselect supplements from registry
+  - per-supplement dose controls
+  - inline interaction warnings
+  - blocking errors for unsupported route/combination
 
 ### Main tabs
 
 1. `Overview`
 - Scenario summary cards
-- Key KPI tiles (`AUC`, `Cmax`, `Tmax`, `NAD delta`)
+- Key KPI tiles (`AUC`, `Cmax`, `Tmax`, `NAD delta`, stack size)
 
 2. `PK Curves`
-- Plasma and portal curves
-- Segmental GI transit plot
+- Primary precursor trace toggle
+- Supplement trace multiselect for side-by-side overlays
 - Optional route comparison overlay
 
 3. `NAD Pools`
 - Tissue intracellular NAD trajectories (`cyt`, `mito`)
-- Consumption flux decomposition (CD38/PARP/SIRT)
+- Optional supplement stack signal overlay
 
-4. `Parameters`
+4. `Supplement Effects`
+- Selected supplement table
+- Category/dose/interaction-model-ready visibility
+- Backend notes for interpretation context
+
+5. `Parameters`
 - Table with source provenance fields
-- Filter by module and source type
+- Registry source visibility (`config/supplements.yaml`)
 
-5. `Calibration`
+6. `Calibration`
 - Dataset selector
 - Objective metric visualization
-- Parameter posterior/fit summary placeholder
+- Interaction-fit diagnostics placeholder
 
 ## 4. Interaction requirements
 
 - Every run tagged with scenario id and timestamp
 - User can export current run (`csv` + `yaml` config)
 - Inline warnings for unsupported mechanism combinations
+- Blocking rules prevent simulation runs when route/support constraints are violated
 - Tooltips for mechanistic terms and assumptions
 
 ## 5. Responsive behavior

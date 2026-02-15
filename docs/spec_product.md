@@ -10,6 +10,7 @@ Provide a transparent, auditable, mechanistic simulation environment for supplem
 - Optional NAD booster extensions (NR, NMN)
 - IV NAD+ infusion route
 - Tissue-level intracellular NAD pool dynamics
+- User-selectable multi-supplement stacks with interaction validation states
 
 ## Primary users
 
@@ -20,17 +21,20 @@ Provide a transparent, auditable, mechanistic simulation environment for supplem
 ## Core user jobs
 
 1. Define a regimen (route, dose, schedule, formulation profile).
-2. Run mechanistic simulation and inspect plasma/tissue trajectories.
-3. Compare scenarios side-by-side.
-4. Calibrate uncertain parameters to observed human datasets.
-5. Export result bundles with assumptions and source traceability.
+2. Build a supplement stack with per-supplement doses.
+3. Run mechanistic simulation and inspect plasma/tissue trajectories.
+4. Compare scenarios side-by-side.
+5. Calibrate uncertain parameters to observed human datasets.
+6. Export result bundles with assumptions and source traceability.
 
 ## In-scope outputs
 
 - Plasma and tissue concentration-time outputs for NA/NAM and NAD metabolome states
+- Per-supplement plasma proxy traces for stack visualization
 - Intracellular `NAD_cyt` and `NAD_mito` trajectories by tissue
 - Derived exposure metrics (`AUC`, `Cmax`, `Tmax`, delta-from-baseline)
 - Regime indicators for PARP/SIRT/CD38 consumption dynamics
+- Stack interaction warnings/errors based on backend model coverage
 
 ## Out of scope (initial release)
 
@@ -48,6 +52,8 @@ Provide a transparent, auditable, mechanistic simulation environment for supplem
 ## Acceptance criteria (v0)
 
 1. Streamlit app launches and runs baseline simulation.
-2. Module boundaries are codified and independently testable.
-3. Parameter template includes traceable metadata fields.
-4. Documentation is sufficient for a separate implementation team to continue.
+2. Supplement stack can be selected and dose-adjusted from sidebar.
+3. Unsupported supplement/route combinations are blocked before run.
+4. Module boundaries are codified and independently testable.
+5. Parameter template includes traceable metadata fields.
+6. Documentation is sufficient for a separate implementation team to continue.

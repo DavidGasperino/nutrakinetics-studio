@@ -4,6 +4,8 @@
 
 Given a dosing regimen and formulation, simulate oral supplement to systemic exposure and intracellular NAD pool dynamics, plus IV NAD+ as a parallel route.
 
+The simulator must also support user-selectable **supplement stacks** with explicit interaction-validation status.
+
 ## 2. Architecture
 
 Module graph:
@@ -13,6 +15,10 @@ Module graph:
 Parallel route:
 
 `IV -> ECTO -> PBPK <-> NAD_QSP`
+
+Supplement extension path:
+
+`SUPPLEMENT_REGISTRY -> INTERACTION_VALIDATOR -> STACK_EFFECTS -> PBPK/NAD_QSP`
 
 Each module owns:
 
@@ -28,6 +34,7 @@ Each module owns:
 - PBPK states: tissue amounts for central and peripheral compartments
 - QSP states per tissue: `NAM`, `NMN`, `NAD_cyt`, `NAD_mito`, optional `NAAD`
 - ECTO states for IV: plasma `NAD`, `NAM`, optional `ADPR`
+- Supplement stack states: per-supplement plasma proxy traces and aggregate stack signal
 
 ## 4. Units and conventions
 
@@ -79,6 +86,16 @@ Per tissue:
 - Consumption: CD38, PARP-like, SIRT-like terms with stress toggles
 - Cytosol-mitochondria exchange via transport (SLC25A51-capable)
 
+### 5.7 Supplement stack effects (v1)
+
+- Supplement definitions are loaded from `config/supplements.yaml`.
+- User-selected supplements are validated for route support and known pairwise caution rules.
+- Valid selections produce bounded multiplicative modifiers:
+  - synthesis multiplier
+  - CD38 multiplier
+  - absorption multiplier
+- Per-supplement plasma proxy traces are generated for plotting and scenario comparison.
+
 ## 6. Parameter traceability contract
 
 Every parameter record must include:
@@ -89,12 +106,15 @@ Every parameter record must include:
 - `source_id` (DOI/PMID/dataset)
 - `notes`
 
+This applies to supplement-registry parameters as well.
+
 ## 7. Calibration strategy
 
 1. Fit release/dissolution to in vitro profiles.
 2. Fit plasma PK for NA/NAM to known oral behavior.
 3. Fit NAD metabolome time courses for intracellular module constraints.
 4. Fit IV ecto-clearance behavior using infusion studies.
+5. Fit/validate stack modifiers and pairwise interactions for selected supplement combinations.
 
 ## 8. Validation checks
 
@@ -102,7 +122,12 @@ Every parameter record must include:
 - Non-negativity
 - Parameter bounds and unit consistency
 - Scenario sanity checks (IR peak timing, age/CD38 effect directionality)
+- Supplement stack checks (route support, unknown ids, pairwise rule detection)
 
 ## 9. Code interfaces
 
-Defined in `models/interfaces.py` as module contracts and scenario/result types. Implementation classes can be swapped without changing app orchestration.
+- Scenario/result contracts: `models/interfaces.py`
+- Core simulation orchestration: `models/simulation.py`
+- Supplement registry + interaction validation: `models/supplements.py`
+
+Implementation classes remain swappable without changing app orchestration.

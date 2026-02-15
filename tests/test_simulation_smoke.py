@@ -1,5 +1,6 @@
 from models.interfaces import SimulationScenario
 from models.simulation import run_simulation
+from models.supplements import validate_supplement_stack
 
 
 def test_run_simulation_smoke() -> None:
@@ -18,3 +19,34 @@ def test_run_simulation_smoke() -> None:
     assert not df.empty
     assert {"time_h", "plasma_precursor_uM", "nad_cyt_uM", "nad_mito_uM"}.issubset(df.columns)
     assert (df[["plasma_precursor_uM", "nad_cyt_uM", "nad_mito_uM"]] >= 0).all().all()
+
+
+def test_run_simulation_with_supplement_stack() -> None:
+    scenario = SimulationScenario(
+        route="oral",
+        compound="NA + NAM mix",
+        dose_mg=400.0,
+        duration_h=18.0,
+        formulation="ER",
+        cd38_scale=1.1,
+        selected_supplements=("quercetin", "tmg"),
+        supplement_doses_mg={"quercetin": 500.0, "tmg": 1000.0},
+    )
+
+    result = run_simulation(scenario)
+    df = result.dataframe
+
+    assert "supp_quercetin_plasma_uM" in df.columns
+    assert "supp_tmg_plasma_uM" in df.columns
+    assert "supplement_stack_signal_uM" in df.columns
+    assert len(result.warnings) >= 1
+
+
+def test_validation_blocks_route_mismatch() -> None:
+    validation = validate_supplement_stack(
+        selected_ids=("nr",),
+        route="iv",
+        primary_compound="NAM",
+    )
+
+    assert validation.blocking_errors

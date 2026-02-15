@@ -1,0 +1,122 @@
+supplements:
+  - id: quercetin
+    label: Quercetin
+    category: Polyphenol
+    enabled: true
+    default_dose_mg: 500.0
+    route_support: [oral]
+    stack_group: adjunct_antioxidant
+    pk:
+      ka_per_h: 1.2
+      kel_per_h: 0.35
+      exposure_scale: 0.055
+    nad_effects:
+      synthesis_multiplier: 1.03
+      cd38_multiplier: 0.95
+      absorption_multiplier: 1.00
+    backend:
+      interaction_model_ready: false
+      notes: "Directional placeholder effect only; pairwise interaction model pending."
+
+  - id: tmg
+    label: Trimethylglycine (TMG)
+    category: Methyl donor
+    enabled: true
+    default_dose_mg: 1000.0
+    route_support: [oral]
+    stack_group: methyl_support
+    pk:
+      ka_per_h: 1.0
+      kel_per_h: 0.45
+      exposure_scale: 0.040
+    nad_effects:
+      synthesis_multiplier: 1.02
+      cd38_multiplier: 1.00
+      absorption_multiplier: 1.00
+    backend:
+      interaction_model_ready: false
+      notes: "Downstream methyl-balance effects not yet explicitly represented."
+
+  - id: pterostilbene
+    label: Pterostilbene
+    category: Polyphenol
+    enabled: true
+    default_dose_mg: 100.0
+    route_support: [oral]
+    stack_group: adjunct_antioxidant
+    pk:
+      ka_per_h: 0.9
+      kel_per_h: 0.28
+      exposure_scale: 0.030
+    nad_effects:
+      synthesis_multiplier: 1.01
+      cd38_multiplier: 0.98
+      absorption_multiplier: 1.00
+    backend:
+      interaction_model_ready: false
+      notes: "No validated concentration-driven interaction module yet."
+
+  - id: berberine
+    label: Berberine
+    category: Botanical alkaloid
+    enabled: true
+    default_dose_mg: 500.0
+    route_support: [oral]
+    stack_group: ampk_modulator
+    pk:
+      ka_per_h: 0.7
+      kel_per_h: 0.22
+      exposure_scale: 0.025
+    nad_effects:
+      synthesis_multiplier: 1.00
+      cd38_multiplier: 0.99
+      absorption_multiplier: 0.95
+    backend:
+      interaction_model_ready: false
+      notes: "Potential GI/transporter interactions are not mechanistically resolved."
+
+  - id: nr
+    label: Nicotinamide Riboside (NR)
+    category: NAD precursor
+    enabled: true
+    default_dose_mg: 300.0
+    route_support: [oral]
+    stack_group: nad_precursor
+    pk:
+      ka_per_h: 1.1
+      kel_per_h: 0.42
+      exposure_scale: 0.080
+    nad_effects:
+      synthesis_multiplier: 1.08
+      cd38_multiplier: 1.00
+      absorption_multiplier: 1.02
+    backend:
+      interaction_model_ready: true
+      notes: "Placeholder kinetics; full microbiome-pathway model planned."
+
+  - id: nmn
+    label: Nicotinamide Mononucleotide (NMN)
+    category: NAD precursor
+    enabled: true
+    default_dose_mg: 250.0
+    route_support: [oral]
+    stack_group: nad_precursor
+    pk:
+      ka_per_h: 0.95
+      kel_per_h: 0.40
+      exposure_scale: 0.075
+    nad_effects:
+      synthesis_multiplier: 1.06
+      cd38_multiplier: 1.00
+      absorption_multiplier: 1.01
+    backend:
+      interaction_model_ready: true
+      notes: "Transport-pathway ambiguity handled with configurable weighting later."
+
+interaction_rules:
+  - supplements: [nr, nmn]
+    severity: warning
+    message: "Stacking multiple direct NAD precursors is enabled but pairwise interaction calibration is pending."
+  - supplements: [berberine, quercetin]
+    severity: warning
+    message: "Combined GI interaction effects are not yet modeled; interpret simulated stack response cautiously."

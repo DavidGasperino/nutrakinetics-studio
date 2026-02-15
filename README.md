@@ -6,6 +6,7 @@ NutraKinetics Studio is a Streamlit-first modeling workspace for mechanistic sup
 
 - A build-ready specification stack for oral vitamin B3 -> NAD+ and IV NAD+ modeling
 - A modular architecture for PBPK + intracellular NAD-QSP development
+- A supplement stack registry with interaction-validation hooks for future multi-supplement simulation
 - A runnable Streamlit shell to inspect scenarios and plots while model modules are incrementally implemented
 - Calibration and validation planning docs for human-data fit workflows
 
@@ -27,10 +28,10 @@ streamlit run app/main.py
 
 ```text
 app/                     Streamlit app
-config/                  Parameter templates
+config/                  Parameter and supplement registry templates
 data/                    Raw and processed datasets
 docs/                    Product, technical, UI, and roadmap specifications
-models/                  Module interfaces and simulation stubs
+models/                  Module interfaces, simulation stubs, supplement stack engine
 scripts/                 Utility scripts (ingestion, calibration hooks)
 tests/                   Smoke tests
 ```
