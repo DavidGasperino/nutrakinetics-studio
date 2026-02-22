@@ -76,6 +76,7 @@ Compare controls:
 - active interaction parameter table
 - effective vs default coefficient visibility
 - CLI fitting hook usage snippet
+- implementation source: `nutrakinetics_studio.calibration`
 
 ## 5. UX guardrails
 
@@ -95,3 +96,8 @@ Compare controls:
 - color contrast >= WCAG AA for text and warnings
 - keyboard-friendly controls
 - non-color cues in labels and legends
+
+## 8. Namespace migration note
+
+- UI/runtime code imports should use `nutrakinetics_studio.*`.
+- Legacy `models.*` imports are temporary shims and should not be used for new UI features.

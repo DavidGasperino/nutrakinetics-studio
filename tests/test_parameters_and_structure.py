@@ -1,15 +1,15 @@
 from dataclasses import replace
 
-from models.interfaces import SimulationScenario
-from models.parameters import (
+from nutrakinetics_studio.interfaces import SimulationScenario
+from nutrakinetics_studio.parameters import (
     SolverConfig,
     core_parameter_catalog_df,
     load_core_model_parameters,
     supplement_parameter_catalog_df,
 )
-from models.simulation import run_simulation
-from models.supplement_modules import build_supplement_modules
-from models.supplements import selected_definitions
+from nutrakinetics_studio.simulation import run_simulation
+from nutrakinetics_studio.supplement_modules import build_supplement_modules
+from nutrakinetics_studio.supplements import selected_definitions
 
 
 def test_parameter_catalog_has_metadata_fields() -> None:

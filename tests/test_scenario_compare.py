@@ -1,6 +1,6 @@
-from models.interfaces import SimulationScenario
-from models.scenario_compare import clear_runs, delete_runs, load_saved_runs, run_dataframe, save_run
-from models.simulation import run_simulation
+from nutrakinetics_studio.interfaces import SimulationScenario
+from nutrakinetics_studio.scenario_compare import clear_runs, delete_runs, load_saved_runs, run_dataframe, save_run
+from nutrakinetics_studio.simulation import run_simulation
 
 
 def test_save_load_delete_compare_runs(monkeypatch, tmp_path) -> None:

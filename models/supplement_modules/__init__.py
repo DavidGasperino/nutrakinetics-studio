@@ -1,7 +1,5 @@
-from models.supplement_modules.engine import DynamicModifierResult, build_supplement_modules, compute_dynamic_modifier_series
+from models._compat import warn_legacy_import
 
-__all__ = [
-    "DynamicModifierResult",
-    "build_supplement_modules",
-    "compute_dynamic_modifier_series",
-]
+warn_legacy_import("models.supplement_modules", "nutrakinetics_studio.supplement_modules")
+
+from nutrakinetics_studio.supplement_modules import *  # noqa: F401,F403

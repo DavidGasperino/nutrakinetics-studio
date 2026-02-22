@@ -1,24 +1,5 @@
-from __future__ import annotations
+from models._compat import warn_legacy_import
 
-from dataclasses import dataclass
-from typing import Protocol
+warn_legacy_import("models.supplement_modules.base", "nutrakinetics_studio.supplement_modules.base")
 
-import numpy as np
-
-from models.supplements import SupplementDefinition
-
-
-@dataclass(frozen=True)
-class SupplementEffectSeries:
-    concentration_uM: np.ndarray
-    sat_signal: np.ndarray
-    synthesis_effect: np.ndarray
-    cd38_effect: np.ndarray
-    absorption_effect: np.ndarray
-
-
-class SupplementModule(Protocol):
-    definition: SupplementDefinition
-
-    def effect_series(self, times_h: np.ndarray, dose_mg: float, class_scalar: float) -> SupplementEffectSeries:
-        ...
+from nutrakinetics_studio.supplement_modules.base import *  # noqa: F401,F403

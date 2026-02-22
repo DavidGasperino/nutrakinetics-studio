@@ -117,7 +117,7 @@ Lookup sources:
 
 Implemented hooks:
 
-- Interaction parameter inspection table: `models/calibration.py`
+- Interaction parameter inspection table: `src/nutrakinetics_studio/calibration.py`
 - Interaction coefficient fitting routine: `fit_interaction_coefficients`
 - CLI entrypoint: `scripts/fit_interactions.py`
 
@@ -134,13 +134,19 @@ Fitting target currently defaults to observed `NAD_cyt` trajectory (`time_h`, `o
 
 ## 9. Code interfaces
 
-- Typed parameter catalog: `models/parameters.py`
-- Supplement-agnostic human equations: `models/processes/human_common.py`
-- Supplement module abstractions: `models/supplement_modules/base.py`
-- Supplement module implementations: `models/supplement_modules/default.py`
-- Supplement module effect engine: `models/supplement_modules/engine.py`
-- Scenario/result contracts: `models/interfaces.py`
-- Core simulation: `models/simulation.py`
-- Supplement registry + validation: `models/supplements.py`
-- Persistent compare storage: `models/scenario_compare.py`
-- Calibration utilities: `models/calibration.py`
+- Typed parameter catalog: `nutrakinetics_studio.parameters`
+- Supplement-agnostic human equations: `nutrakinetics_studio.processes.human_common`
+- Supplement module abstractions: `nutrakinetics_studio.supplement_modules.base`
+- Supplement module implementations: `nutrakinetics_studio.supplement_modules.default`
+- Supplement module effect engine: `nutrakinetics_studio.supplement_modules.engine`
+- Scenario/result contracts: `nutrakinetics_studio.interfaces`
+- Core simulation: `nutrakinetics_studio.simulation`
+- Supplement registry + validation: `nutrakinetics_studio.supplements`
+- Persistent compare storage: `nutrakinetics_studio.scenario_compare`
+- Calibration utilities: `nutrakinetics_studio.calibration`
+
+## 10. Namespace migration
+
+- Canonical imports are `nutrakinetics_studio.*`.
+- Legacy `models.*` imports are supported by compatibility shims for one release cycle only.
+- Shim removal is planned in the next explicit breaking-change migration.

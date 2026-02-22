@@ -2,18 +2,15 @@
 from __future__ import annotations
 
 import argparse
-import sys
 from pathlib import Path
 
 import pandas as pd
 import yaml
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
+from nutrakinetics_studio.calibration import fit_interaction_coefficients
+from nutrakinetics_studio.interfaces import SimulationScenario
 
-from models.calibration import fit_interaction_coefficients  # noqa: E402
-from models.interfaces import SimulationScenario  # noqa: E402
+REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
 def parse_args() -> argparse.Namespace:

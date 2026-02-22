@@ -1,8 +1,8 @@
 import pandas as pd
 
-from models.calibration import fit_interaction_coefficients, interaction_parameter_rows
-from models.interfaces import SimulationScenario
-from models.simulation import run_simulation
+from nutrakinetics_studio.calibration import fit_interaction_coefficients, interaction_parameter_rows
+from nutrakinetics_studio.interfaces import SimulationScenario
+from nutrakinetics_studio.simulation import run_simulation
 
 
 def test_interaction_parameter_rows_exposes_rules() -> None:

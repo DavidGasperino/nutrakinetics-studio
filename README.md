@@ -19,9 +19,11 @@ NutraKinetics Studio is a Streamlit-first workspace for mechanistic supplement P
 cd /Users/davidgasperino/workspace/nutrakinetics-studio
 python3 -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
+pip install -e ".[dev]"
 streamlit run app/main.py
 ```
+
+`streamlit run app/main.py` remains the canonical launch command.
 
 ## Fit interaction coefficients
 
@@ -42,10 +44,11 @@ Expected dataset columns:
 
 ```text
 app/                     Streamlit app
+src/nutrakinetics_studio/ Installable package namespace
 config/                  Parameter + supplement registry templates
 data/                    Raw and processed datasets
 docs/                    Product, technical, UI, and roadmap specifications
-models/                  Simulation engine, supplement dynamics, compare store, calibration hooks
+models/                  Temporary compatibility shims for legacy imports
 scripts/                 CLI tools (including interaction fitting)
 tests/                   Unit/smoke tests
 ```
@@ -59,6 +62,12 @@ tests/                   Unit/smoke tests
 
 ## Strategic code layout
 
-- `models/processes/`: supplement-agnostic human process equations
-- `models/supplement_modules/`: supplement-specific module implementations and effect engine
-- `models/parameters.py`: typed access to auditable parameter records
+- `nutrakinetics_studio.processes`: supplement-agnostic human process equations
+- `nutrakinetics_studio.supplement_modules`: supplement-specific module implementations and effect engine
+- `nutrakinetics_studio.parameters`: typed access to auditable parameter records
+
+## Import migration note
+
+- Canonical imports are now `nutrakinetics_studio.*`.
+- Legacy `models.*` imports remain available through temporary compatibility shims for one release cycle.
+- New code should not add new `models.*` imports.

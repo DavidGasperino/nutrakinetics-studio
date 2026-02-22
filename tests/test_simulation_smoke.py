@@ -1,8 +1,8 @@
 from dataclasses import replace
 
-from models.interfaces import SimulationScenario
-from models.simulation import run_simulation
-from models.supplements import validate_supplement_stack
+from nutrakinetics_studio.interfaces import SimulationScenario
+from nutrakinetics_studio.simulation import run_simulation
+from nutrakinetics_studio.supplements import validate_supplement_stack
 
 
 def test_run_simulation_smoke() -> None:
