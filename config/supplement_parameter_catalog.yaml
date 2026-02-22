@@ -1,0 +1,64 @@
+parameters:
+  pk.ka_per_h:
+    units: 1/h
+    definition: "First-order absorption rate constant"
+    description: "Controls the rising phase of the supplement plasma proxy concentration trace."
+    reference: "internal_reduced_order_pk_assumption"
+  pk.kel_per_h:
+    units: 1/h
+    definition: "First-order elimination rate constant"
+    description: "Controls decay phase of supplement plasma proxy concentration trace."
+    reference: "internal_reduced_order_pk_assumption"
+  pk.exposure_scale:
+    units: uM_per_mg
+    definition: "Dose-to-concentration scale factor"
+    description: "Maps supplement dose (mg) into concentration trace amplitude in proxy PK module."
+    reference: "estimated_from_fit:supplement_exposure_scaling"
+
+  dynamics.ec50_uM:
+    units: uM
+    definition: "Half-effect concentration"
+    description: "Concentration at which the supplement saturating signal reaches 50% of max."
+    reference: "hill_model_pharmacology_standard"
+  dynamics.hill_n:
+    units: dimensionless
+    definition: "Hill coefficient"
+    description: "Controls steepness of concentration-to-signal transform."
+    reference: "hill_model_pharmacology_standard"
+  dynamics.synthesis_gain_per_signal:
+    units: fold_per_signal
+    definition: "Synthesis effect gain"
+    description: "Signal-to-effect gain added to NAD synthesis effect channel."
+    reference: "estimated_from_fit:stack_synthesis_channel"
+  dynamics.cd38_effect_per_signal:
+    units: fold_per_signal
+    definition: "CD38 effect gain"
+    description: "Signal-to-effect gain added to CD38 sink effect channel (negative lowers sink)."
+    reference: "estimated_from_fit:stack_cd38_channel"
+  dynamics.absorption_gain_per_signal:
+    units: fold_per_signal
+    definition: "Absorption effect gain"
+    description: "Signal-to-effect gain added to absorption effect channel."
+    reference: "estimated_from_fit:stack_absorption_channel"
+
+  calibration.prior_mean:
+    units: parameter_units
+    definition: "Prior mean for fit-enabled parameter"
+    description: "Default prior mean used during interaction/supplement calibration routines."
+    reference: "internal_calibration_pipeline"
+  calibration.prior_sd:
+    units: parameter_units
+    definition: "Prior standard deviation for fit-enabled parameter"
+    description: "Prior uncertainty width used for regularization in optimization objective."
+    reference: "internal_calibration_pipeline"
+
+  interaction_rules.coefficient:
+    units: fold
+    definition: "Interaction rule effect coefficient"
+    description: "Strength of pairwise interaction contribution to targeted effect channel."
+    reference: "estimated_from_fit:interaction_rule"
+  interaction_rules.bounds:
+    units: fold
+    definition: "Interaction rule coefficient bounds"
+    description: "Lower and upper limits for calibratable interaction coefficient."
+    reference: "numerical_stability_policy"

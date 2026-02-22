@@ -3,9 +3,9 @@ from __future__ import annotations
 from dataclasses import dataclass, replace
 from functools import lru_cache
 from pathlib import Path
+from typing import Any
 
 import numpy as np
-import pandas as pd
 import yaml
 
 
@@ -181,6 +181,14 @@ def apply_interaction_overrides(
     return tuple(updated)
 
 
+def _warn_if_parameter_metadata_missing(warnings: list[str], payload: dict[str, Any]) -> None:
+    # Strategic guardrail: keep config auditable even when values are tuned over time.
+    required_fields = ("source_type", "source_id")
+    for class_name, node in payload.get("parameters", {}).get("supplement_dynamics", {}).get("class_scalars", {}).items():
+        if any(field not in node for field in required_fields):
+            warnings.append(f"Class scalar '{class_name}' is missing source metadata fields.")
+
+
 def validate_supplement_stack(
     selected_ids: tuple[str, ...],
     route: str,
@@ -246,112 +254,9 @@ def validate_supplement_stack(
         else:
             warnings.append(rule.message)
 
+    _warn_if_parameter_metadata_missing(warnings, _load_parameter_payload())
+
     unique_blocking = tuple(dict.fromkeys(blocking_errors))
     unique_warnings = tuple(dict.fromkeys(warnings))
 
     return SupplementValidation(blocking_errors=unique_blocking, warnings=unique_warnings)
-
-
-def _saturating_signal(concentration_uM: np.ndarray, ec50_uM: float, hill_n: float) -> np.ndarray:
-    ec50 = max(ec50_uM, 1e-6)
-    hill = max(hill_n, 0.1)
-    numerator = np.power(np.maximum(concentration_uM, 0.0), hill)
-    denominator = np.power(ec50, hill) + numerator
-    return np.divide(numerator, denominator, out=np.zeros_like(numerator), where=denominator > 0)
-
-
-def supplement_concentration_trace(
-    times_h: np.ndarray,
-    dose_mg: float,
-    definition: SupplementDefinition,
-) -> np.ndarray:
-    ka = max(definition.ka_per_h, 1e-4)
-    kel = max(definition.kel_per_h, 1e-4)
-    if abs(ka - kel) < 1e-6:
-        kel = ka * 0.9
-
-    scale = definition.exposure_scale * max(dose_mg, 0.0)
-    trace = scale * (np.exp(-kel * times_h) - np.exp(-ka * times_h))
-    return np.maximum(trace, 0.0)
-
-
-def generate_supplement_traces(
-    times_h: np.ndarray,
-    definitions: list[SupplementDefinition],
-    dose_map_mg: dict[str, float],
-) -> dict[str, np.ndarray]:
-    traces: dict[str, np.ndarray] = {}
-    for definition in definitions:
-        dose = dose_map_mg.get(definition.supplement_id, definition.default_dose_mg)
-        traces[definition.supplement_id] = supplement_concentration_trace(times_h, dose_mg=dose, definition=definition)
-    return traces
-
-
-def compute_dynamic_modifier_series(
-    times_h: np.ndarray,
-    traces: dict[str, np.ndarray],
-    definitions: list[SupplementDefinition],
-    interaction_rules: tuple[InteractionRule, ...],
-    class_scalars: dict[str, float],
-) -> pd.DataFrame:
-    synthesis_effect = np.zeros_like(times_h, dtype=float)
-    cd38_effect = np.zeros_like(times_h, dtype=float)
-    absorption_effect = np.zeros_like(times_h, dtype=float)
-
-    columns: dict[str, np.ndarray] = {}
-    sat_signals: dict[str, np.ndarray] = {}
-
-    for definition in definitions:
-        concentration = traces.get(definition.supplement_id)
-        if concentration is None:
-            continue
-
-        sat_signal = _saturating_signal(concentration, definition.ec50_uM, definition.hill_n)
-        sat_signals[definition.supplement_id] = sat_signal
-
-        class_scalar = class_scalars.get(definition.mechanism_class, 1.0)
-
-        synthesis_effect += class_scalar * definition.synthesis_gain_per_signal * sat_signal
-        cd38_effect += class_scalar * definition.cd38_effect_per_signal * sat_signal
-        absorption_effect += class_scalar * definition.absorption_gain_per_signal * sat_signal
-
-        columns[f"supp_{definition.supplement_id}_sat_signal"] = sat_signal
-
-    for rule in interaction_rules:
-        if not all(supp_id in sat_signals for supp_id in rule.supplements):
-            continue
-
-        interaction_signal = np.ones_like(times_h, dtype=float)
-        for supp_id in rule.supplements:
-            interaction_signal *= sat_signals[supp_id]
-
-        interaction_signal = np.power(interaction_signal, 1.0 / max(len(rule.supplements), 1))
-        signed_effect = rule.coefficient * interaction_signal
-        if rule.effect_direction.lower() == "decrease":
-            signed_effect *= -1.0
-
-        if rule.target == "synthesis":
-            synthesis_effect += signed_effect
-        elif rule.target == "cd38":
-            cd38_effect += signed_effect
-        elif rule.target == "absorption":
-            absorption_effect += signed_effect
-
-        columns[f"interaction_{rule.rule_id}_effect"] = signed_effect
-
-    synthesis_multiplier = np.clip(1.0 + synthesis_effect, 0.50, 2.20)
-    cd38_multiplier = np.clip(1.0 + cd38_effect, 0.30, 1.80)
-    absorption_multiplier = np.clip(1.0 + absorption_effect, 0.50, 1.80)
-
-    data = {
-        "time_h": times_h,
-        "synthesis_effect": synthesis_effect,
-        "cd38_effect": cd38_effect,
-        "absorption_effect": absorption_effect,
-        "synthesis_multiplier": synthesis_multiplier,
-        "cd38_multiplier": cd38_multiplier,
-        "absorption_multiplier": absorption_multiplier,
-    }
-    data.update(columns)
-
-    return pd.DataFrame(data)

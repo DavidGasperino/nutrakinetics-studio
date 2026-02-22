@@ -99,11 +99,19 @@ Every parameter record includes:
 
 - `value`
 - `units`
+- `definition`
+- `description`
+- `reference`
 - `source_type`
 - `source_id`
 - `notes`
 
 Applies to base PBPK/QSP parameters, supplement definitions, class scalars, and interaction coefficients.
+
+Lookup sources:
+
+- Core simulation constants: `config/parameters.base.yaml`
+- Supplement parameter definitions: `config/supplement_parameter_catalog.yaml`
 
 ## 7. Calibration hooks
 
@@ -126,8 +134,13 @@ Fitting target currently defaults to observed `NAD_cyt` trajectory (`time_h`, `o
 
 ## 9. Code interfaces
 
+- Typed parameter catalog: `models/parameters.py`
+- Supplement-agnostic human equations: `models/processes/human_common.py`
+- Supplement module abstractions: `models/supplement_modules/base.py`
+- Supplement module implementations: `models/supplement_modules/default.py`
+- Supplement module effect engine: `models/supplement_modules/engine.py`
 - Scenario/result contracts: `models/interfaces.py`
 - Core simulation: `models/simulation.py`
-- Supplement registry + dynamic effects: `models/supplements.py`
+- Supplement registry + validation: `models/supplements.py`
 - Persistent compare storage: `models/scenario_compare.py`
 - Calibration utilities: `models/calibration.py`

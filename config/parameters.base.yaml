@@ -1,6 +1,6 @@
 metadata:
   model_name: nutrakinetics_studio
-  version: 0.2.0
+  version: 0.3.0
   created_at_utc: "2026-02-15T00:00:00Z"
 
 parameters:
@@ -9,12 +9,18 @@ parameters:
       weibull_tau_h:
         value: 1.2
         units: h
+        definition: "Weibull time-scale parameter for oral NA release profile"
+        description: "Controls characteristic release time for immediate/extended release NA formulation fit."
+        reference: "in_vitro_curve:na_ir_placeholder"
         source_type: estimated_from_fit
         source_id: "in_vitro_curve:na_ir_placeholder"
         notes: "Replace after product-specific dissolution fit."
       weibull_beta:
         value: 1.0
         units: dimensionless
+        definition: "Weibull shape parameter for oral NA release"
+        description: "Controls release curve convexity/concavity in Weibull release function."
+        reference: "in_vitro_curve:na_ir_placeholder"
         source_type: estimated_from_fit
         source_id: "in_vitro_curve:na_ir_placeholder"
         notes: "Shape parameter for release profile."
@@ -23,12 +29,18 @@ parameters:
     transit_k_stomach:
       value: 1.5
       units: 1/h
+      definition: "Stomach transit first-order rate constant"
+      description: "Baseline stomach emptying/transit rate for fasted-state placeholder GI model."
+      reference: "CAT_ACAT_framework"
       source_type: database
       source_id: "CAT_ACAT_framework"
       notes: "Baseline fasted setting."
     peff_na:
       value: 0.8
       units: cm/h
+      definition: "Effective permeability of nicotinic acid"
+      description: "Placeholder permeability coefficient for NA absorption in baseline GI module."
+      reference: "estimated_placeholder"
       source_type: estimated_from_fit
       source_id: "placeholder"
       notes: "Effective permeability placeholder."
@@ -37,12 +49,18 @@ parameters:
     nampt_km_nam:
       value: 0.05
       units: uM
+      definition: "NAMPT Michaelis constant for NAM"
+      description: "Affinity scale for NAM -> NMN salvage conversion in intracellular NAD module."
+      reference: "PubMed:18396861"
       source_type: peer_reviewed
       source_id: "PubMed:18396861"
       notes: "Use as prior; allow tissue calibration."
     cd38_scale_aging:
       value: 1.4
       units: fold
+      definition: "Age/inflammation CD38 scaling factor"
+      description: "Scenario-level scalar to increase NAD sink pressure under aging/inflammation assumptions."
+      reference: "PubMed:27291301"
       source_type: estimated_from_fit
       source_id: "hypothesis_prior"
       notes: "Scenario control for age/inflammation profile."
@@ -52,24 +70,36 @@ parameters:
       nad_precursor:
         value: 1.00
         units: fold
+        definition: "Global scalar for NAD precursor supplement class"
+        description: "Multiplies dynamic effects contributed by supplements in the nad_precursor class."
+        reference: "supplement_class_prior:nad_precursor"
         source_type: estimated_from_fit
         source_id: "supplement_class_prior:nad_precursor"
         notes: "Global class scalar for NAD precursor dynamic effects."
       adjunct_antioxidant:
         value: 1.00
         units: fold
+        definition: "Global scalar for adjunct antioxidant class"
+        description: "Multiplies dynamic effects contributed by antioxidant adjunct supplements."
+        reference: "supplement_class_prior:adjunct_antioxidant"
         source_type: estimated_from_fit
         source_id: "supplement_class_prior:adjunct_antioxidant"
         notes: "Global class scalar for adjunct antioxidant dynamic effects."
       methyl_support:
         value: 1.00
         units: fold
+        definition: "Global scalar for methyl-support class"
+        description: "Multiplies dynamic effects for methyl-balance support supplements."
+        reference: "supplement_class_prior:methyl_support"
         source_type: estimated_from_fit
         source_id: "supplement_class_prior:methyl_support"
         notes: "Global class scalar for methyl support effects."
       ampk_modulator:
         value: 1.00
         units: fold
+        definition: "Global scalar for AMPK-modulator class"
+        description: "Multiplies dynamic effects for AMPK-associated supplement mechanisms."
+        reference: "supplement_class_prior:ampk_modulator"
         source_type: estimated_from_fit
         source_id: "supplement_class_prior:ampk_modulator"
         notes: "Global class scalar for AMPK-linked effects."
@@ -78,12 +108,303 @@ parameters:
       enabled:
         value: true
         units: boolean
+        definition: "Enable interaction coefficient fitting hooks"
+        description: "If true, fitting utilities may optimize interaction coefficients from observed data."
+        reference: "internal_calibration_pipeline"
         source_type: estimated_from_fit
         source_id: "calibration_pipeline_flag"
         notes: "If true, interaction fit scripts may update interaction coefficients."
       objective:
         value: "mse_nad_cyt"
         units: text
+        definition: "Default objective function for interaction fitting"
+        description: "Objective name used by calibration scripts when no override is provided."
+        reference: "internal_calibration_pipeline"
         source_type: estimated_from_fit
         source_id: "calibration_pipeline_default"
         notes: "Default fitting objective used by scripts/fit_interactions.py."
+
+  simulation_core:
+    solver:
+      time_grid_points:
+        value: 250
+        units: count
+        definition: "Number of output time points"
+        description: "Resolution of the simulation output grid spanning [0, duration_h]."
+        reference: "internal_modeling_choice"
+        source_type: estimated_from_fit
+        source_id: "solver_grid_default"
+        notes: "Higher values increase resolution and compute cost."
+      ode_method:
+        value: "LSODA"
+        units: text
+        definition: "ODE solver algorithm"
+        description: "SciPy solve_ivp integration method used for the simulation ODE system."
+        reference: "https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.solve_ivp.html"
+        source_type: database
+        source_id: "scipy_solve_ivp_docs"
+        notes: "Chosen for robust switching between stiff and non-stiff modes."
+
+    initial_conditions:
+      precursor_dose_to_state_scale:
+        value: 0.01
+        units: uM_per_mg
+        definition: "Dose-to-initial precursor state scaling"
+        description: "Maps primary dose (mg) to initial model precursor concentration state."
+        reference: "estimated_initial_state_scaling"
+        source_type: estimated_from_fit
+        source_id: "initial_state_scale_prior"
+        notes: "Placeholder mapping until full dose-formulation state initialization is implemented."
+      nad_cyt_baseline_uM:
+        value: 40.0
+        units: uM
+        definition: "Baseline cytosolic/nuclear NAD concentration"
+        description: "Initial NAD cytosolic state at simulation start."
+        reference: "estimated_baseline_prior"
+        source_type: estimated_from_fit
+        source_id: "nad_cyt_baseline_prior"
+        notes: "Scenario baseline placeholder."
+      nad_mito_baseline_uM:
+        value: 30.0
+        units: uM
+        definition: "Baseline mitochondrial NAD concentration"
+        description: "Initial NAD mitochondrial state at simulation start."
+        reference: "estimated_baseline_prior"
+        source_type: estimated_from_fit
+        source_id: "nad_mito_baseline_prior"
+        notes: "Scenario baseline placeholder."
+
+    route_inputs:
+      oral_input_base_uM_per_h:
+        value: 0.8
+        units: uM_per_h
+        definition: "Baseline oral input source term"
+        description: "Base oral-route precursor input flux before absorption modifiers are applied."
+        reference: "estimated_route_input_prior"
+        source_type: estimated_from_fit
+        source_id: "oral_input_prior"
+        notes: "Proxy value in current reduced-order model."
+      iv_input_base_uM_per_h:
+        value: 1.0
+        units: uM_per_h
+        definition: "Baseline IV input source term"
+        description: "Base IV-route precursor input flux for simplified IV pathway in current model shell."
+        reference: "estimated_route_input_prior"
+        source_type: estimated_from_fit
+        source_id: "iv_input_prior"
+        notes: "Proxy value in current reduced-order model."
+
+    precursor_kinetics:
+      uptake_rate_per_h:
+        value: 0.15
+        units: 1/h
+        definition: "Plasma precursor uptake rate"
+        description: "First-order rate constant for precursor movement from plasma into downstream processes."
+        reference: "estimated_kinetic_prior"
+        source_type: estimated_from_fit
+        source_id: "precursor_uptake_prior"
+        notes: "Reduced-order kinetics placeholder."
+      clearance_rate_per_h:
+        value: 0.20
+        units: 1/h
+        definition: "Plasma precursor clearance rate"
+        description: "First-order systemic clearance of precursor state."
+        reference: "estimated_kinetic_prior"
+        source_type: estimated_from_fit
+        source_id: "precursor_clearance_prior"
+        notes: "Reduced-order kinetics placeholder."
+
+    nad_flux:
+      precursor_to_nad_gain_per_h:
+        value: 0.12
+        units: 1/h
+        definition: "Precursor-driven NAD synthesis gain"
+        description: "Contribution of precursor concentration to NAD synthesis flux."
+        reference: "estimated_flux_prior"
+        source_type: estimated_from_fit
+        source_id: "synthesis_precursor_gain_prior"
+        notes: "Reduced-order synthesis mapping."
+      oral_input_to_nad_gain_per_h:
+        value: 0.02
+        units: 1/h
+        definition: "Oral-input-linked NAD synthesis gain"
+        description: "Additional synthesis contribution linked directly to oral route source term."
+        reference: "estimated_flux_prior"
+        source_type: estimated_from_fit
+        source_id: "synthesis_oral_gain_prior"
+        notes: "Reduced-order synthesis mapping."
+      iv_input_to_nad_gain_per_h:
+        value: 0.01
+        units: 1/h
+        definition: "IV-input-linked NAD synthesis gain"
+        description: "Additional synthesis contribution linked directly to IV route source term."
+        reference: "estimated_flux_prior"
+        source_type: estimated_from_fit
+        source_id: "synthesis_iv_gain_prior"
+        notes: "Reduced-order synthesis mapping."
+      cyt_to_mito_rate_per_h:
+        value: 0.10
+        units: 1/h
+        definition: "Cytosol-to-mitochondria NAD transfer rate"
+        description: "First-order transfer from cytosolic/nuclear NAD pool into mitochondrial pool."
+        reference: "DOI:10.1038/s41586-020-2741-7"
+        source_type: peer_reviewed
+        source_id: "DOI:10.1038/s41586-020-2741-7"
+        notes: "Proxy transfer rate; calibrated in reduced-order model."
+      mito_to_cyt_rate_per_h:
+        value: 0.07
+        units: 1/h
+        definition: "Mitochondria-to-cytosol NAD transfer rate"
+        description: "First-order transfer from mitochondrial NAD pool back to cytosolic/nuclear pool."
+        reference: "DOI:10.1038/s42255-024-01174-w"
+        source_type: peer_reviewed
+        source_id: "DOI:10.1038/s42255-024-01174-w"
+        notes: "Proxy back-transfer rate; calibrated in reduced-order model."
+      cd38_base_rate_per_h:
+        value: 0.05
+        units: 1/h
+        definition: "Baseline CD38-like NAD consumption rate"
+        description: "Base NAD sink term corresponding to CD38-mediated consumption pressure."
+        reference: "PubMed:27291301"
+        source_type: peer_reviewed
+        source_id: "PubMed:27291301"
+        notes: "Scaled by scenario CD38 factor and dynamic modifiers."
+      parp_base_rate_per_h:
+        value: 0.02
+        units: 1/h
+        definition: "Baseline PARP-like NAD consumption rate"
+        description: "Base NAD sink term for PARP-like consumption channel in reduced-order model."
+        reference: "DOI:10.1038/s41467-019-08530-5"
+        source_type: peer_reviewed
+        source_id: "DOI:10.1038/s41467-019-08530-5"
+        notes: "Placeholder channel prior to explicit stress-state modeling."
+      sirt_base_rate_per_h:
+        value: 0.01
+        units: 1/h
+        definition: "Baseline SIRT-like NAD consumption rate"
+        description: "Base NAD sink term for SIRT-like consumption channel in reduced-order model."
+        reference: "https://www.mdpi.com/1422-0067/21/1/142"
+        source_type: peer_reviewed
+        source_id: "MDPI:1422-0067/21/1/142"
+        notes: "Placeholder channel prior to explicit energy-state modeling."
+      mito_loss_rate_per_h:
+        value: 0.01
+        units: 1/h
+        definition: "Mitochondrial NAD loss rate"
+        description: "Residual first-order loss term on mitochondrial NAD pool."
+        reference: "estimated_flux_prior"
+        source_type: estimated_from_fit
+        source_id: "mito_loss_prior"
+        notes: "Reduced-order closure term."
+
+    modifier_bounds:
+      synthesis_multiplier_min:
+        value: 0.50
+        units: fold
+        definition: "Minimum allowed synthesis multiplier"
+        description: "Lower clipping bound applied to dynamic synthesis multiplier series."
+        reference: "numerical_stability_policy"
+        source_type: estimated_from_fit
+        source_id: "multiplier_bound_policy"
+        notes: "Prevents unstable negative or near-zero synthesis dynamics."
+      synthesis_multiplier_max:
+        value: 2.20
+        units: fold
+        definition: "Maximum allowed synthesis multiplier"
+        description: "Upper clipping bound applied to dynamic synthesis multiplier series."
+        reference: "numerical_stability_policy"
+        source_type: estimated_from_fit
+        source_id: "multiplier_bound_policy"
+        notes: "Prevents unstable amplification in reduced-order shell."
+      cd38_multiplier_min:
+        value: 0.30
+        units: fold
+        definition: "Minimum allowed CD38 multiplier"
+        description: "Lower clipping bound applied to dynamic CD38 sink multiplier series."
+        reference: "numerical_stability_policy"
+        source_type: estimated_from_fit
+        source_id: "multiplier_bound_policy"
+        notes: "Prevents negative sink behavior."
+      cd38_multiplier_max:
+        value: 1.80
+        units: fold
+        definition: "Maximum allowed CD38 multiplier"
+        description: "Upper clipping bound applied to dynamic CD38 sink multiplier series."
+        reference: "numerical_stability_policy"
+        source_type: estimated_from_fit
+        source_id: "multiplier_bound_policy"
+        notes: "Prevents unstable sink amplification."
+      absorption_multiplier_min:
+        value: 0.50
+        units: fold
+        definition: "Minimum allowed absorption multiplier"
+        description: "Lower clipping bound applied to dynamic absorption multiplier series."
+        reference: "numerical_stability_policy"
+        source_type: estimated_from_fit
+        source_id: "multiplier_bound_policy"
+        notes: "Ensures non-negative effective input behavior."
+      absorption_multiplier_max:
+        value: 1.80
+        units: fold
+        definition: "Maximum allowed absorption multiplier"
+        description: "Upper clipping bound applied to dynamic absorption multiplier series."
+        reference: "numerical_stability_policy"
+        source_type: estimated_from_fit
+        source_id: "multiplier_bound_policy"
+        notes: "Prevents unstable route input amplification."
+
+    numerical_safeguards:
+      ec50_min_uM:
+        value: 1.0e-6
+        units: uM
+        definition: "Minimum EC50 for saturating signal evaluation"
+        description: "Lower numerical floor to avoid division singularities in Hill functions."
+        reference: "numerical_stability_policy"
+        source_type: estimated_from_fit
+        source_id: "safeguard_policy"
+        notes: "Computational safeguard."
+      hill_min:
+        value: 0.1
+        units: dimensionless
+        definition: "Minimum Hill coefficient"
+        description: "Lower numerical floor for Hill exponent in saturating signal model."
+        reference: "numerical_stability_policy"
+        source_type: estimated_from_fit
+        source_id: "safeguard_policy"
+        notes: "Computational safeguard."
+      ka_min_per_h:
+        value: 1.0e-4
+        units: 1/h
+        definition: "Minimum absorption rate constant for supplement trace model"
+        description: "Lower bound on ka to prevent degenerate or zero dynamics."
+        reference: "numerical_stability_policy"
+        source_type: estimated_from_fit
+        source_id: "safeguard_policy"
+        notes: "Computational safeguard."
+      kel_min_per_h:
+        value: 1.0e-4
+        units: 1/h
+        definition: "Minimum elimination rate constant for supplement trace model"
+        description: "Lower bound on kel to prevent degenerate or zero dynamics."
+        reference: "numerical_stability_policy"
+        source_type: estimated_from_fit
+        source_id: "safeguard_policy"
+        notes: "Computational safeguard."
+      ka_kel_equal_tolerance:
+        value: 1.0e-6
+        units: 1/h
+        definition: "Equality tolerance for ka and kel"
+        description: "Threshold below which ka and kel are treated as nearly equal and adjusted."
+        reference: "numerical_stability_policy"
+        source_type: estimated_from_fit
+        source_id: "safeguard_policy"
+        notes: "Computational safeguard."
+      ka_kel_adjustment_factor:
+        value: 0.9
+        units: fold
+        definition: "Adjustment factor when ka and kel are near-equal"
+        description: "kel is scaled by this factor when ka ~= kel to avoid zero-difference trace behavior."
+        reference: "numerical_stability_policy"
+        source_type: estimated_from_fit
+        source_id: "safeguard_policy"
+        notes: "Computational safeguard."

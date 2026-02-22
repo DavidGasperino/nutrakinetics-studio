@@ -8,6 +8,7 @@ import streamlit as st
 
 from models.calibration import interaction_parameter_rows
 from models.interfaces import SimulationScenario
+from models.parameters import core_parameter_catalog_df, supplement_parameter_catalog_df
 from models.scenario_compare import clear_runs, delete_runs, load_saved_runs, run_dataframe, save_run
 from models.simulation import run_simulation
 from models.supplements import fittable_interaction_rules, load_registry, validate_supplement_stack
@@ -370,12 +371,23 @@ with compare_tab:
 
 with params_tab:
     st.markdown("Base parameter provenance lives in `config/parameters.base.yaml`.")
-    st.code(
-        """fields: value, units, source_type, source_id, notes""",
-        language="yaml",
+    st.markdown(
+        "Each parameter row includes `value`, `units`, `definition`, `description`, and `reference` fields "
+        "for traceable lookup."
     )
 
+    catalog_df = core_parameter_catalog_df()
+    if catalog_df.empty:
+        st.info("No core parameter catalog rows loaded.")
+    else:
+        st.dataframe(catalog_df, use_container_width=True)
+
     st.markdown("Supplement dynamics and interaction priors are in `config/supplements.yaml`.")
+    st.markdown("Supplement parameter definitions are cataloged in `config/supplement_parameter_catalog.yaml`.")
+
+    supplement_catalog = supplement_parameter_catalog_df()
+    if not supplement_catalog.empty:
+        st.dataframe(supplement_catalog, use_container_width=True)
 
 with calibration_tab:
     st.markdown("Calibration hooks are available in `models/calibration.py` and `scripts/fit_interactions.py`.")

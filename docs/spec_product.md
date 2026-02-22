@@ -46,6 +46,7 @@ Provide a transparent, auditable mechanistic simulation environment for suppleme
 ## Non-functional requirements
 
 - Parameter-level provenance
+- Parameter lookup includes definition, description, and reference for every model constant
 - Reproducible scenario state and saved runs
 - Clear distinction between calibrated vs prior-driven interaction parameters
 - Baseline interactive response under typical laptop constraints

@@ -8,6 +8,8 @@ NutraKinetics Studio is a Streamlit-first workspace for mechanistic supplement P
 - Modular PBPK + intracellular NAD-QSP architecture
 - Multi-supplement stack registry with explicit interaction rules
 - Dynamic supplement-class effect equations (not static stack multipliers)
+- Typed core-parameter catalog with definition/description/reference metadata
+- Supplement parameter-definition catalog for lookup of stack PK/dynamic terms
 - Persistent scenario compare mode (save runs and overlay later)
 - Calibration hooks for fitting interaction coefficients from observed data
 
@@ -54,3 +56,9 @@ tests/                   Unit/smoke tests
 - `docs/spec_model.md`
 - `docs/spec_ui.md`
 - `docs/spec_roadmap.md`
+
+## Strategic code layout
+
+- `models/processes/`: supplement-agnostic human process equations
+- `models/supplement_modules/`: supplement-specific module implementations and effect engine
+- `models/parameters.py`: typed access to auditable parameter records

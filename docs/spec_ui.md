@@ -68,7 +68,8 @@ Compare controls:
 - delete selected / clear all actions
 
 6. `Parameters`
-- provenance contract fields
+- provenance contract fields (`value`, `units`, `definition`, `description`, `reference`, `source_id`)
+- core parameter catalog table + supplement parameter-definition catalog table
 - pointers to config sources
 
 7. `Calibration`
