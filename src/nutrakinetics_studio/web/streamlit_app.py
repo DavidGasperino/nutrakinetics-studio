@@ -14,6 +14,31 @@ from nutrakinetics_studio.simulation import run_simulation
 from nutrakinetics_studio.supplements import fittable_interaction_rules, load_registry, validate_supplement_stack
 
 
+def _scenario_signature(
+    scenario: SimulationScenario,
+    interaction_overrides: dict[str, float],
+) -> tuple[object, ...]:
+    supplement_doses = tuple(sorted((k, float(v)) for k, v in scenario.supplement_doses_mg.items()))
+    override_items = tuple(sorted((k, float(v)) for k, v in interaction_overrides.items()))
+    return (
+        scenario.route,
+        scenario.compound,
+        float(scenario.dose_mg),
+        float(scenario.duration_h),
+        scenario.formulation,
+        float(scenario.cd38_scale),
+        tuple(scenario.selected_supplements),
+        supplement_doses,
+        override_items,
+    )
+
+
+def _record_run(signature: tuple[object, ...]) -> None:
+    st.session_state["last_run_signature"] = signature
+    st.session_state["last_run_at_utc"] = datetime.now(UTC).isoformat()
+    st.session_state["run_count"] = int(st.session_state.get("run_count", 0)) + 1
+
+
 def run_app() -> None:
     st.set_page_config(page_title="NutraKinetics Studio", layout="wide")
 
@@ -54,6 +79,10 @@ def run_app() -> None:
 
     if "saved_runs" not in st.session_state:
         st.session_state["saved_runs"] = load_saved_runs()
+
+    st.session_state.setdefault("run_count", 0)
+    st.session_state.setdefault("last_run_signature", None)
+    st.session_state.setdefault("last_run_at_utc", None)
 
     st.title("NutraKinetics Studio")
     st.caption("Mechanistic supplement PK/PBPK + NAD dynamics workbench")
@@ -160,16 +189,36 @@ def run_app() -> None:
         supplement_doses_mg=supplement_doses_mg,
         interaction_coefficient_overrides=interaction_overrides,
     )
+    scenario_signature = _scenario_signature(scenario, interaction_overrides)
+    inputs_pending = st.session_state.get("last_run_signature") != scenario_signature
 
     if "result" not in st.session_state and can_run:
-        st.session_state["result"] = run_simulation(scenario)
+        with st.spinner("Running simulation..."):
+            st.session_state["result"] = run_simulation(scenario)
+        _record_run(scenario_signature)
+        st.session_state["run_feedback"] = "Initial simulation completed."
 
     if run_btn and can_run:
-        st.session_state["result"] = run_simulation(scenario)
+        with st.spinner("Running simulation..."):
+            st.session_state["result"] = run_simulation(scenario)
+        _record_run(scenario_signature)
+        st.session_state["run_feedback"] = "Simulation updated with current inputs."
 
     if "result" not in st.session_state:
         st.info("Resolve blocking supplement validation issues to run the simulation.")
         st.stop()
+
+    last_run_iso = st.session_state.get("last_run_at_utc")
+    if last_run_iso:
+        run_time = datetime.fromisoformat(last_run_iso).strftime("%Y-%m-%d %H:%M:%S")
+        st.caption(f"Last run: {run_time} UTC | Run count: {st.session_state.get('run_count', 0)}")
+
+    if inputs_pending and can_run:
+        st.info("Inputs changed since last run. Click `Run Simulation` to refresh outputs.")
+
+    run_feedback = st.session_state.pop("run_feedback", None)
+    if run_feedback:
+        st.success(run_feedback)
 
     result = st.session_state["result"]
     df = result.dataframe
